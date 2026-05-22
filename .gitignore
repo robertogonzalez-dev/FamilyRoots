@@ -37,6 +37,7 @@ pip-log.txt
 pip-delete-this-directory.txt
 
 # Unit test / coverage reports
+.claude
 htmlcov/
 .tox/
 .nox/
@@ -216,3 +217,18 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Node / Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.env
+
+# Backend
+backend/.env
+backend/uploads/
+backend/.venv/
+backend/__pycache__/
+*.pyc
+
+# Docker volumes
+postgres_data/

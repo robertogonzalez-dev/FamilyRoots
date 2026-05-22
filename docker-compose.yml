@@ -1,0 +1,54 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: familyroots
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build: ./backend
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://postgres:password@db:5432/familyroots
+      SECRET_KEY: change-this-in-production-use-a-long-random-string
+      ALGORITHM: HS256
+      ACCESS_TOKEN_EXPIRE_MINUTES: 60
+      CORS_ORIGINS: http://localhost:5173,http://localhost:3000,http://localhost
+      UPLOAD_DIR: /app/uploads
+      MAX_GEDCOM_SIZE_MB: 50
+    ports:
+      - "8000:8000"
+    volumes:
+      - uploads_data:/app/uploads
+    command: >
+      sh -c "cd /app &&
+             alembic upgrade head &&
+             uvicorn app.main:app --host 0.0.0.0 --port 8000"
+
+  frontend:
+    build: ./frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "80:80"
+
+volumes:
+  postgres_data:
+  uploads_data:
