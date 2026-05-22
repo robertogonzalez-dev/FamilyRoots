@@ -1,4 +1,4 @@
-import { useEffect, useCallback, useState, useMemo, useRef } from "react";
+import { Component, type ReactNode, useEffect, useCallback, useState, useMemo, useRef } from "react";
 import ReactFlow, {
   Background,
   Controls,
@@ -22,6 +22,29 @@ import { filterByFocus } from "../utils/focusFilter";
 
 const nodeTypes = { personNode: TreeNode };
 
+class TreeErrorBoundary extends Component<
+  { children: ReactNode },
+  { error: Error | null }
+> {
+  state = { error: null };
+  static getDerivedStateFromError(error: Error) {
+    return { error };
+  }
+  render() {
+    if (this.state.error) {
+      return (
+        <div className="flex flex-col items-center justify-center h-64 text-center gap-3">
+          <p className="text-red-600 font-semibold">Failed to render the family tree.</p>
+          <p className="text-sm text-gray-500 font-mono">
+            {(this.state.error as Error).message}
+          </p>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 function DepthControl({
   label,
   icon,
@@ -29,7 +52,7 @@ function DepthControl({
   onChange,
 }: {
   label: string;
-  icon: React.ReactNode;
+  icon: ReactNode;
   value: number;
   onChange: (v: number) => void;
 }) {
@@ -257,8 +280,10 @@ export default function FamilyTree() {
   if (error) return <ErrorMessage message={error} className="mt-8" />;
 
   return (
-    <ReactFlowProvider>
-      <FamilyTreeCanvas rawNodes={rawNodes} rawEdges={rawEdges} />
-    </ReactFlowProvider>
+    <TreeErrorBoundary>
+      <ReactFlowProvider>
+        <FamilyTreeCanvas rawNodes={rawNodes} rawEdges={rawEdges} />
+      </ReactFlowProvider>
+    </TreeErrorBoundary>
   );
 }

@@ -1,4 +1,4 @@
-import dagre from "@dagrejs/dagre";
+import dagre from "dagre";
 import type { Node, Edge } from "reactflow";
 
 const NODE_WIDTH = 176; // matches w-44 (11rem)

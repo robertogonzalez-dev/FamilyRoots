@@ -9,7 +9,7 @@
     "lint": "eslint src --ext ts,tsx"
   },
   "dependencies": {
-    "@dagrejs/dagre": "^1.1.4",
+    "dagre": "^0.8.5",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.23.1",
@@ -25,6 +25,7 @@
     "lucide-react": "^0.394.0"
   },
   "devDependencies": {
+    "@types/dagre": "^0.7.4",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
     "@typescript-eslint/eslint-plugin": "^7.13.0",
