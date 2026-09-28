@@ -1,0 +1,62 @@
+:root {
+  --bg: #f7f5f0;
+  --surface: #ffffff;
+  --text: #1f2a24;
+  --muted: #66736b;
+  --accent: #2f6b4f;
+  --accent-contrast: #ffffff;
+  --border: #dcd8cf;
+  --error: #b3261e;
+  --female: #f3e6ef;
+  --male: #e4edf6;
+  font-family: Inter, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  color: var(--text);
+  background: var(--bg);
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #141816;
+    --surface: #1d2320;
+    --text: #e7ece9;
+    --muted: #9aa8a0;
+    --accent: #6fbf95;
+    --accent-contrast: #0e1511;
+    --border: #2f3833;
+    --error: #ff8a80;
+    --female: #3a2a35;
+    --male: #243241;
+    color-scheme: dark;
+  }
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); }
+main { max-width: 1000px; margin: 0 auto; padding: 24px 16px 64px; }
+h1 { font-size: 1.8rem; margin: 8px 0 16px; }
+h2 { font-size: 1.1rem; margin: 0; }
+a { color: var(--accent); }
+.muted { color: var(--muted); }
+.small { font-size: 0.85rem; padding-left: 18px; }
+.error { color: var(--error); }
+
+input, select, button { font: inherit; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); color: var(--text); }
+label { display: grid; gap: 4px; font-size: 0.9rem; }
+button { background: var(--accent); color: var(--accent-contrast); border: none; cursor: pointer; font-weight: 600; }
+button:disabled { opacity: 0.5; cursor: default; }
+button.link { background: none; color: var(--accent); padding: 0; font-weight: 500; }
+
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px; }
+.stack { display: grid; gap: 10px; }
+.row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 16px; }
+.row input { flex: 1; min-width: 180px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; padding: 0; list-style: none; }
+
+.auth { max-width: 380px; padding-top: 12vh; }
+.topbar { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; border-bottom: 1px solid var(--border); background: var(--surface); font-weight: 600; }
+
+.tree { display: grid; gap: 20px; margin: 16px 0 32px; overflow-x: auto; }
+.generation { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+.person { display: grid; gap: 2px; min-width: 140px; text-align: center; padding: 10px 14px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface); }
+.person.female { background: var(--female); }
+.person.male { background: var(--male); }

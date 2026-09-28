@@ -1,0 +1,15 @@
+# Render Blueprint for the API. Point DATABASE_URL at a Neon (free, doesn't expire) Postgres.
+services:
+  - type: web
+    name: familyroots-api
+    runtime: docker
+    rootDir: backend
+    plan: free
+    healthCheckPath: /health
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: CORS_ORIGINS
+        sync: false  # e.g. ["https://familyroots.vercel.app"]

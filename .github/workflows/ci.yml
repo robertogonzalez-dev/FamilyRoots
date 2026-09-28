@@ -1,0 +1,52 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: familyroots
+          POSTGRES_PASSWORD: familyroots
+          POSTGRES_DB: familyroots
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U familyroots" --health-interval 3s --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -e ".[dev]"
+      - run: ruff check . && ruff format --check .
+      - run: pytest --cov-fail-under=90
+      - name: Migrations apply cleanly to Postgres
+        run: alembic upgrade head && alembic check
+        env:
+          DATABASE_URL: postgresql+psycopg://familyroots:familyroots@localhost:5432/familyroots
+
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run build
