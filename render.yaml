@@ -1,0 +1,19 @@
+# Render Blueprint for the API (Docker). Use a Neon Postgres for DATABASE_URL (free, doesn't expire).
+# Note: Render's free disk is ephemeral, so uploaded photos are lost on redeploy.
+# See docs/SCOPE.md for moving uploads to S3/R2.
+services:
+  - type: web
+    name: familyroots-api
+    runtime: docker
+    rootDir: backend
+    plan: free
+    healthCheckPath: /health
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DATABASE_URL
+        sync: false   # postgresql://user:pass@host/db?sslmode=require
+      - key: CORS_ORIGINS
+        sync: false   # e.g. https://familyroots.vercel.app

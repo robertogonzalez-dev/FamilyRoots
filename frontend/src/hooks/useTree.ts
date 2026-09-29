@@ -1,6 +1,7 @@
 import { useState, useCallback } from "react";
 import { treeService } from "../services/treeService";
 import type { Node, Edge } from "reactflow";
+import { apiErrorMessage } from "../utils/errors";
 
 export function useTree() {
   const [nodes, setNodes] = useState<Node[]>([]);
@@ -15,8 +16,8 @@ export function useTree() {
       const data = await treeService.getTree();
       setNodes(data.nodes);
       setEdges(data.edges);
-    } catch (e: any) {
-      setError(e.response?.data?.detail ?? "Failed to load tree");
+    } catch (e) {
+      setError(apiErrorMessage(e, "Failed to load tree"));
     } finally {
       setLoading(false);
     }

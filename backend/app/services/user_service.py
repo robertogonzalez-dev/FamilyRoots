@@ -1,15 +1,18 @@
-from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
+from sqlalchemy import func
+from sqlalchemy.orm import Session
+
+from app.auth.security import hash_password, verify_password
 from app.models.user import User, UserRole
 from app.schemas.user import UserCreate, UserRegister, UserUpdate
-from app.auth.security import hash_password, verify_password
 
 
 def create_user(db: Session, data: UserCreate) -> User:
-    if db.query(User).filter(User.email == data.email).first():
+    email = data.email.lower()
+    if db.query(User).filter(func.lower(User.email) == email).first():
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered")
     user = User(
-        email=data.email,
+        email=email,
         password_hash=hash_password(data.password),
         full_name=data.full_name,
         role=data.role,
@@ -22,10 +25,11 @@ def create_user(db: Session, data: UserCreate) -> User:
 
 def register_user(db: Session, data: UserRegister) -> User:
     """Self-registration always creates a viewer."""
-    if db.query(User).filter(User.email == data.email).first():
+    email = data.email.lower()
+    if db.query(User).filter(func.lower(User.email) == email).first():
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered")
     user = User(
-        email=data.email,
+        email=email,
         password_hash=hash_password(data.password),
         full_name=data.full_name,
         role=UserRole.viewer,
@@ -37,11 +41,15 @@ def register_user(db: Session, data: UserRegister) -> User:
 
 
 def authenticate_user(db: Session, email: str, password: str) -> User | None:
-    user = db.query(User).filter(User.email == email).first()
-    if not user or not verify_password(password, user.password_hash):
+    user = db.query(User).filter(func.lower(User.email) == email.lower()).first()
+    if not user:
         return None
-    if not user.is_active:
+    valid, upgraded_hash = verify_password(password, user.password_hash)
+    if not valid or not user.is_active:
         return None
+    if upgraded_hash:  # transparently move legacy bcrypt hashes to Argon2
+        user.password_hash = upgraded_hash
+        db.commit()
     return user
 
 

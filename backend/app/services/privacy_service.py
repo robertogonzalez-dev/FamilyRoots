@@ -1,3 +1,6 @@
+from fastapi import HTTPException
+from sqlalchemy.orm import Session
+
 from app.models.person import Person
 from app.models.user import User, UserRole
 
@@ -22,4 +25,12 @@ def sanitize_person(person: Person, user: User | None) -> Person | None:
     """Returns None if person should be hidden, or a (possibly redacted) copy."""
     if not can_view_person(person, user):
         return None
+    return person
+
+
+def get_visible_person_or_404(db: Session, person_id: int, user: User | None) -> Person:
+    """Load a person the user may see; hidden and missing people are both a 404."""
+    person = db.get(Person, person_id)
+    if person is None or not can_view_person(person, user):
+        raise HTTPException(status_code=404, detail="Person not found")
     return person

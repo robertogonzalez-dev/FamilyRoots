@@ -2,19 +2,23 @@
 Run this once to create your first admin user.
 Usage:  python create_admin.py
 """
-import os, sys
+import getpass
+import os
+import sys
+
 sys.path.insert(0, os.path.dirname(__file__))
 
 from dotenv import load_dotenv
+
 load_dotenv()
 
 from app.database import SessionLocal
-from app.services.user_service import create_user
-from app.schemas.user import UserCreate
 from app.models.user import UserRole
+from app.schemas.user import UserCreate
+from app.services.user_service import create_user
 
 email = input("Admin email: ").strip()
-password = input("Admin password: ").strip()
+password = getpass.getpass("Admin password (hidden): ")
 name = input("Full name: ").strip()
 
 db = SessionLocal()

@@ -1,10 +1,12 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+
+from app.auth.dependencies import get_current_user, require_editor
 from app.database import get_db
 from app.models.source import Source
-from app.schemas.source import SourceCreate, SourceUpdate, SourceResponse
-from app.auth.dependencies import get_current_user, require_editor
 from app.models.user import User
+from app.schemas.source import SourceCreate, SourceResponse, SourceUpdate
+from app.services.privacy_service import get_visible_person_or_404
 
 router = APIRouter()
 
@@ -15,6 +17,7 @@ def list_person_sources(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    get_visible_person_or_404(db, person_id, current_user)
     return db.query(Source).filter(Source.person_id == person_id).all()
 
 
@@ -24,6 +27,7 @@ def create_source(
     db: Session = Depends(get_db),
     current_user: User = Depends(require_editor),
 ):
+    get_visible_person_or_404(db, data.person_id, current_user)
     source = Source(**data.model_dump())
     db.add(source)
     db.commit()

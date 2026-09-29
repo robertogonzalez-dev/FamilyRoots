@@ -1,13 +1,16 @@
 import os
 import uuid
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
+
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 from sqlalchemy.orm import Session
+
+from app.auth.dependencies import get_current_user, require_editor
+from app.config import settings
 from app.database import get_db
 from app.models.media import Media
-from app.schemas.media import MediaResponse, MediaUpdate
-from app.auth.dependencies import get_current_user, require_editor
 from app.models.user import User
-from app.config import settings
+from app.schemas.media import MediaResponse, MediaUpdate
+from app.services.privacy_service import get_visible_person_or_404
 from app.utils.file_validation import validate_image_file
 
 router = APIRouter()
@@ -19,6 +22,7 @@ def list_person_media(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    get_visible_person_or_404(db, person_id, current_user)
     return db.query(Media).filter(Media.person_id == person_id).all()
 
 
@@ -29,6 +33,7 @@ async def upload_media(
     db: Session = Depends(get_db),
     current_user: User = Depends(require_editor),
 ):
+    get_visible_person_or_404(db, person_id, current_user)
     validate_image_file(file)
     ext = os.path.splitext(file.filename or "")[1]
     filename = f"{uuid.uuid4().hex}{ext}"

@@ -4,6 +4,7 @@ import toast from "react-hot-toast";
 import PersonForm from "../components/PersonForm";
 import { peopleService } from "../services/peopleService";
 import type { PersonCreate } from "../types/person";
+import { apiErrorMessage } from "../utils/errors";
 
 export default function AddPerson() {
   const navigate = useNavigate();
@@ -15,8 +16,8 @@ export default function AddPerson() {
       const person = await peopleService.create(data);
       toast.success("Person added successfully");
       navigate(`/people/${person.id}`);
-    } catch (err: any) {
-      toast.error(err.response?.data?.detail ?? "Failed to add person");
+    } catch (err) {
+      toast.error(apiErrorMessage(err, "Failed to add person"));
     } finally {
       setLoading(false);
     }

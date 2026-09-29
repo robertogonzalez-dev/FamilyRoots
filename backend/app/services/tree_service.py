@@ -1,4 +1,5 @@
 from sqlalchemy.orm import Session
+
 from app.models.person import Person
 from app.models.relationship import Relationship, RelationshipType
 from app.models.user import User

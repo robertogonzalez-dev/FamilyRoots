@@ -232,3 +232,7 @@ backend/__pycache__/
 
 # Docker volumes
 postgres_data/
+
+# Local databases and test artifacts
+*.db
+backend/.coverage

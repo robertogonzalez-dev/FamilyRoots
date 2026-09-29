@@ -1,12 +1,13 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+
+from app.auth.dependencies import require_admin
 from app.database import get_db
-from app.models.user import User
 from app.models.person import Person
 from app.models.relationship import Relationship
-from app.schemas.user import UserResponse, UserCreate, UserUpdate
+from app.models.user import User, UserRole
+from app.schemas.user import UserCreate, UserResponse, UserUpdate
 from app.services.user_service import create_user, update_user
-from app.auth.dependencies import require_admin
 
 router = APIRouter()
 
@@ -17,7 +18,7 @@ def dashboard(db: Session = Depends(get_db), current_user: User = Depends(requir
         "total_people": db.query(Person).count(),
         "total_relationships": db.query(Relationship).count(),
         "total_users": db.query(User).count(),
-        "living_people": db.query(Person).filter(Person.is_living == True).count(),
+        "living_people": db.query(Person).filter(Person.is_living.is_(True)).count(),
     }
 
 
@@ -45,6 +46,10 @@ def admin_update_user(
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
+    if user.id == current_user.id and (
+        (data.role is not None and data.role != UserRole.admin) or data.is_active is False
+    ):
+        raise HTTPException(status_code=400, detail="You cannot demote or deactivate yourself")
     return update_user(db, user, data)
 
 

@@ -1,4 +1,5 @@
 from fastapi import HTTPException, UploadFile, status
+
 from app.config import settings
 
 ALLOWED_IMAGE_TYPES = {"image/jpeg", "image/png", "image/gif", "image/webp"}

@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Users, Upload, Settings } from "lucide-react";
+import { Users, Upload } from "lucide-react";
 
 export default function AdminDashboard() {
   return (

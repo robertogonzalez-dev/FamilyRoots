@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
-import { UserPlus, Trash2, Shield } from "lucide-react";
+import { UserPlus, Trash2 } from "lucide-react";
 import toast from "react-hot-toast";
 import { adminService } from "../services/adminService";
 import LoadingSpinner from "../components/LoadingSpinner";
-import type { User, UserCreate } from "../types/user";
+import type { User, UserCreate, UserRole } from "../types/user";
+import { apiErrorMessage } from "../utils/errors";
 
 export default function AdminUsers() {
   const [users, setUsers] = useState<User[]>([]);
@@ -25,8 +26,8 @@ export default function AdminUsers() {
       setShowForm(false);
       setForm({ email: "", password: "", full_name: "", role: "viewer" });
       load();
-    } catch (err: any) {
-      toast.error(err.response?.data?.detail ?? "Failed to create user");
+    } catch (err) {
+      toast.error(apiErrorMessage(err, "Failed to create user"));
     }
   };
 
@@ -36,14 +37,14 @@ export default function AdminUsers() {
       await adminService.deleteUser(user.id);
       toast.success("User deleted");
       load();
-    } catch (err: any) {
-      toast.error(err.response?.data?.detail ?? "Failed to delete user");
+    } catch (err) {
+      toast.error(apiErrorMessage(err, "Failed to delete user"));
     }
   };
 
-  const handleRoleChange = async (user: User, role: string) => {
+  const handleRoleChange = async (user: User, role: UserRole) => {
     try {
-      await adminService.updateUser(user.id, { role: role as any });
+      await adminService.updateUser(user.id, { role });
       toast.success("Role updated");
       load();
     } catch {
@@ -91,7 +92,7 @@ export default function AdminUsers() {
             </div>
             <div>
               <label className="label">Role</label>
-              <select value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value as any })} className="input">
+              <select value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value as UserRole })} className="input">
                 <option value="viewer">Viewer</option>
                 <option value="editor">Editor</option>
                 <option value="admin">Admin</option>
@@ -127,7 +128,7 @@ export default function AdminUsers() {
                   <td className="px-4 py-3">
                     <select
                       value={u.role}
-                      onChange={(e) => handleRoleChange(u, e.target.value)}
+                      onChange={(e) => handleRoleChange(u, e.target.value as UserRole)}
                       className={`text-xs font-medium rounded-full px-2 py-1 border-0 cursor-pointer ${roleBadge(u.role)}`}
                     >
                       <option value="viewer">Viewer</option>

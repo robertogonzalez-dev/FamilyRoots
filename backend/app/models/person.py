@@ -1,8 +1,10 @@
 import enum
-from datetime import datetime, date
+from datetime import date, datetime
 from typing import Optional
-from sqlalchemy import String, Text, Date, DateTime, Boolean, Enum, func
+
+from sqlalchemy import Boolean, Date, DateTime, Enum, String, Text, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+
 from app.database import Base
 
 
@@ -16,7 +18,7 @@ class Gender(str, enum.Enum):
 class Person(Base):
     __tablename__ = "people"
 
-    id: Mapped[int] = mapped_column(primary_key=True, index=True)
+    id: Mapped[int] = mapped_column(primary_key=True)
     external_id: Mapped[Optional[str]] = mapped_column(String(100), unique=True, index=True, nullable=True)
     first_name: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
     middle_name: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)

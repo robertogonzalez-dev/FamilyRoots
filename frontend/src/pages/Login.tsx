@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { TreePine } from "lucide-react";
 import toast from "react-hot-toast";
+import { apiErrorMessage } from "../utils/errors";
 
 interface Props {
   onLogin: (email: string, password: string) => Promise<void>;
@@ -19,8 +20,8 @@ export default function Login({ onLogin }: Props) {
     try {
       await onLogin(email, password);
       navigate("/dashboard");
-    } catch (err: any) {
-      toast.error(err.response?.data?.detail ?? "Login failed");
+    } catch (err) {
+      toast.error(apiErrorMessage(err, "Login failed"));
     } finally {
       setLoading(false);
     }

@@ -11,6 +11,7 @@ import { formatDate, lifespan } from "../utils/dates";
 import { canEdit } from "../utils/privacy";
 import type { Person, RelativesSummary } from "../types/person";
 import type { User as AuthUser } from "../types/user";
+import { apiErrorMessage } from "../utils/errors";
 
 interface Props { user: AuthUser }
 
@@ -33,9 +34,9 @@ export default function PersonDetail({ user }: Props) {
     setLoading(true);
     Promise.all([peopleService.get(personId), peopleService.getRelatives(personId)])
       .then(([p, r]) => { setPerson(p); setRelatives(r); })
-      .catch((e) => setError(e.response?.data?.detail ?? "Failed to load person"))
+      .catch((e) => setError(apiErrorMessage(e, "Failed to load person")))
       .finally(() => setLoading(false));
-  }, [id]);
+  }, [id, personId]);
 
   const handleDelete = async () => {
     if (!person || !confirm(`Delete ${person.full_name}? This cannot be undone.`)) return;

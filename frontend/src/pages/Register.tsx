@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { TreePine } from "lucide-react";
 import toast from "react-hot-toast";
 import { authService } from "../services/authService";
+import { apiErrorMessage } from "../utils/errors";
 
 export default function Register() {
   const [form, setForm] = useState({ email: "", password: "", full_name: "" });
@@ -16,8 +17,8 @@ export default function Register() {
       await authService.register(form.email, form.password, form.full_name);
       toast.success("Account created! Please sign in.");
       navigate("/login");
-    } catch (err: any) {
-      toast.error(err.response?.data?.detail ?? "Registration failed");
+    } catch (err) {
+      toast.error(apiErrorMessage(err, "Registration failed"));
     } finally {
       setLoading(false);
     }

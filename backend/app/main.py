@@ -1,11 +1,12 @@
-import os
 import logging
+import os
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from app.config import settings
-from app.routers import auth, people, relationships, tree, gedcom, admin, media, sources
+from app.routers import admin, auth, gedcom, media, people, relationships, sources, tree
 from app.utils.logging import setup_logging
 
 setup_logging()

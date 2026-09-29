@@ -1,0 +1,7 @@
+{
+  "rewrites": [
+    { "source": "/api/:path*", "destination": "https://familyroots-api.onrender.com/:path*" },
+    { "source": "/uploads/:path*", "destination": "https://familyroots-api.onrender.com/uploads/:path*" },
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
+}

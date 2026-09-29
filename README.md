@@ -1,5 +1,7 @@
 # FamilyRoots
 
+[![CI](https://github.com/robertogonzalez-dev/FamilyRoots/actions/workflows/ci.yml/badge.svg)](https://github.com/robertogonzalez-dev/FamilyRoots/actions/workflows/ci.yml)
+
 A private, full-stack family genealogy web application. Import from Ancestry.com via GEDCOM, manage people and relationships, and explore your family history through an interactive tree.
 
 ## Tech Stack
@@ -11,8 +13,9 @@ A private, full-stack family genealogy web application. Import from Ancestry.com
 | Backend | Python FastAPI |
 | Database | PostgreSQL 16 |
 | ORM / Migrations | SQLAlchemy 2 + Alembic |
-| Auth | JWT (python-jose) + bcrypt (passlib) |
+| Auth | JWT (PyJWT) + Argon2 password hashing (pwdlib); legacy bcrypt hashes upgrade on login |
 | Container | Docker Compose |
+| Quality | pytest (SQLite + Postgres in CI), Ruff, ESLint, GitHub Actions |
 
 ---
 
@@ -99,7 +102,7 @@ python -m venv .venv
 source .venv/bin/activate
 
 # Install dependencies
-pip install -r requirements.txt
+pip install -r requirements.txt       # add -dev.txt to run tests
 
 # Copy and edit environment file
 copy .env.example .env
@@ -128,7 +131,7 @@ npm run dev
 
 Frontend: `http://localhost:5173`
 
-> The Vite dev server proxies all `/auth`, `/people`, `/tree`, etc. calls to `http://localhost:8000` automatically.
+> The Vite dev server forwards `/api/*` (prefix stripped) and `/uploads/*` to `http://localhost:8000`, the same contract nginx uses in Docker and Vercel uses in production.
 
 ---
 
@@ -145,6 +148,7 @@ Frontend: `http://localhost:5173`
 | `CORS_ORIGINS` | `http://localhost:5173` | Allowed frontend origins |
 | `UPLOAD_DIR` | `./uploads` | Local file upload directory |
 | `MAX_GEDCOM_SIZE_MB` | `50` | GEDCOM upload size limit |
+| `APP_ENV` | `development` | Set to `production` to refuse startup without a real `SECRET_KEY` (32+ chars) |
 
 ---
 
@@ -162,6 +166,22 @@ alembic revision --autogenerate -m "description"
 # Rollback one step
 alembic downgrade -1
 ```
+
+---
+
+## Testing
+
+```bash
+cd backend
+pip install -r requirements-dev.txt
+pytest            # 23 tests: auth, roles, privacy, relationship rules, GEDCOM import, admin
+ruff check .
+
+cd ../frontend
+npm run lint && npm run build
+```
+
+CI runs all of this on every push, plus the Alembic migrations against a real PostgreSQL 16 service (upgrade, `alembic check` for model drift, downgrade, upgrade).
 
 ---
 
@@ -229,8 +249,16 @@ Full interactive docs: `http://localhost:8000/docs`
 Privacy logic lives in `backend/app/services/privacy_service.py` — one place to update if rules change.
 
 - **Admin / Editor**: see all people including living
-- **Viewer**: only sees people where `is_living = false`
-- The GEDCOM importer marks anyone without a death date as `is_living = true`
+- **Viewer**: only sees people where `is_living = false`, and never sees anything that would reveal a living person: their relationships, photos (`/media`), sources, or tree edges. Hidden records return 404 so IDs can't be probed.
+- The GEDCOM importer treats someone as **deceased** if they have a death date, any `DEAT`/`BURI` record (Ancestry exports `1 DEAT Y` for "deceased, date unknown"), or were born more than 110 years ago. Everyone else is imported as living.
+
+## Relationship Rules
+
+Enforced by the API (`backend/app/services/relationship_rules.py`) for every create and type change:
+
+- No self-links, links to people that don't exist, or duplicates (spouse/sibling links count in both directions)
+- No cycles: nobody can become their own ancestor, through birth, adoption, or step-parent links
+- At most two biological parents (`parent_child`); use `adopted_child` or `step_parent` for others
 
 ---
 
@@ -241,6 +269,17 @@ Privacy logic lives in `backend/app/services/privacy_service.py` — one place t
 - No inline relationship editor in person detail page
 - No password reset or email invitations
 - No GEDCOM export
+
+---
+
+## Deploy (free tier)
+
+1. **Database:** create a free [Neon](https://neon.tech) Postgres and copy its connection string.
+2. **API:** in Render, create a Blueprint from this repo (`render.yaml`). Set `DATABASE_URL` and `CORS_ORIGINS`; `SECRET_KEY` is generated for you. Migrations run on every deploy.
+3. **Frontend:** import `frontend/` into Vercel. `frontend/vercel.json` forwards `/api/*` and `/uploads/*` to the Render API; update the hostname if your Render service has a different name.
+4. Create the first admin from Render's shell: `python create_admin.py`.
+
+> Render's free disk is ephemeral, so uploaded photos don't survive a redeploy. Moving uploads to S3/R2 is on the roadmap.
 
 ---
 

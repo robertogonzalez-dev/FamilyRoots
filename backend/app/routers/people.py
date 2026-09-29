@@ -1,13 +1,15 @@
 from typing import Optional
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
+
+from app.auth.dependencies import get_current_user, require_editor
 from app.database import get_db
 from app.models.person import Person
 from app.models.relationship import Relationship, RelationshipType
-from app.schemas.person import PersonCreate, PersonUpdate, PersonResponse, PersonSummary
-from app.auth.dependencies import get_current_user, require_editor
-from app.services.privacy_service import can_view_person, filter_people
 from app.models.user import User
+from app.schemas.person import PersonCreate, PersonResponse, PersonSummary, PersonUpdate
+from app.services.privacy_service import can_view_person, filter_people
 
 router = APIRouter()
 

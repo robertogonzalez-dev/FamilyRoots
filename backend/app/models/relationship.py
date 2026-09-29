@@ -1,8 +1,10 @@
 import enum
-from datetime import datetime, date
+from datetime import date, datetime
 from typing import Optional
-from sqlalchemy import String, Text, Date, DateTime, ForeignKey, Enum, func
+
+from sqlalchemy import Date, DateTime, Enum, ForeignKey, Text, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+
 from app.database import Base
 
 
@@ -17,7 +19,7 @@ class RelationshipType(str, enum.Enum):
 class Relationship(Base):
     __tablename__ = "relationships"
 
-    id: Mapped[int] = mapped_column(primary_key=True, index=True)
+    id: Mapped[int] = mapped_column(primary_key=True)
     person1_id: Mapped[int] = mapped_column(ForeignKey("people.id", ondelete="CASCADE"), nullable=False, index=True)
     person2_id: Mapped[int] = mapped_column(ForeignKey("people.id", ondelete="CASCADE"), nullable=False, index=True)
     relationship_type: Mapped[RelationshipType] = mapped_column(Enum(RelationshipType), nullable=False)

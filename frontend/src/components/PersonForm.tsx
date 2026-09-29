@@ -9,7 +9,7 @@ interface Props {
 }
 
 export default function PersonForm({ defaultValues, onSubmit, submitLabel = "Save", loading }: Props) {
-  const { register, handleSubmit, formState: { errors } } = useForm<PersonCreate>({
+  const { register, handleSubmit } = useForm<PersonCreate>({
     defaultValues: defaultValues ?? {},
   });
 

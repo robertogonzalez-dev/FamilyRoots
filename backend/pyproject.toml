@@ -1,0 +1,20 @@
+# Tool configuration only; dependencies live in requirements*.txt.
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+addopts = "--cov=app --cov-report=term-missing"
+
+[tool.ruff]
+line-length = 110
+target-version = "py311"
+extend-exclude = ["alembic/versions"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B"]
+ignore = ["E501"]
+
+[tool.ruff.lint.flake8-bugbear]
+extend-immutable-calls = ["fastapi.Depends", "fastapi.Query", "fastapi.File"]
+
+[tool.ruff.lint.per-file-ignores]
+"create_admin.py" = ["E402"]  # must load .env before importing the app

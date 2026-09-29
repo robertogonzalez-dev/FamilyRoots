@@ -4,6 +4,7 @@ import toast from "react-hot-toast";
 import { gedcomService } from "../services/gedcomService";
 import FileUpload from "../components/FileUpload";
 import LoadingSpinner from "../components/LoadingSpinner";
+import { apiErrorMessage } from "../utils/errors";
 
 interface ImportResult {
   persons_created: number;
@@ -30,8 +31,8 @@ export default function GedcomImport() {
       const data = await gedcomService.importFile(selectedFile);
       setResult(data.result);
       toast.success("GEDCOM import complete!");
-    } catch (err: any) {
-      toast.error(err.response?.data?.detail ?? "Import failed");
+    } catch (err) {
+      toast.error(apiErrorMessage(err, "Import failed"));
     } finally {
       setLoading(false);
     }

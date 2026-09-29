@@ -5,6 +5,7 @@ import PersonForm from "../components/PersonForm";
 import LoadingSpinner from "../components/LoadingSpinner";
 import { peopleService } from "../services/peopleService";
 import type { Person, PersonCreate } from "../types/person";
+import { apiErrorMessage } from "../utils/errors";
 
 export default function EditPerson() {
   const { id } = useParams<{ id: string }>();
@@ -27,8 +28,8 @@ export default function EditPerson() {
       await peopleService.update(person.id, data);
       toast.success("Person updated");
       navigate(`/people/${person.id}`);
-    } catch (err: any) {
-      toast.error(err.response?.data?.detail ?? "Failed to update person");
+    } catch (err) {
+      toast.error(apiErrorMessage(err, "Failed to update person"));
     } finally {
       setSaving(false);
     }

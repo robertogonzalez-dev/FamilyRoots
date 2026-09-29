@@ -1,5 +1,7 @@
 from datetime import datetime
-from pydantic import BaseModel, EmailStr
+
+from pydantic import BaseModel, EmailStr, Field
+
 from app.models.user import UserRole
 
 
@@ -10,7 +12,7 @@ class UserBase(BaseModel):
 
 
 class UserCreate(UserBase):
-    password: str
+    password: str = Field(min_length=8)
 
 
 class UserUpdate(BaseModel):
@@ -30,5 +32,5 @@ class UserResponse(UserBase):
 
 class UserRegister(BaseModel):
     email: EmailStr
-    password: str
+    password: str = Field(min_length=8)
     full_name: str

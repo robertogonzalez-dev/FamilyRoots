@@ -7,8 +7,10 @@ import logging
 import re
 from datetime import date
 from typing import Optional
+
 from sqlalchemy.orm import Session
-from app.models.person import Person, Gender
+
+from app.models.person import Gender, Person
 from app.models.relationship import Relationship, RelationshipType
 
 logger = logging.getLogger(__name__)
@@ -115,6 +117,25 @@ def _get_event_values(record: list, event_tag: str) -> tuple[Optional[date], Opt
     return evt_date, evt_place
 
 
+# People born more than this many years ago are presumed deceased (a common genealogy rule),
+# so they aren't hidden from viewers as "living" just because no death date was recorded.
+PRESUMED_DECEASED_AFTER_YEARS = 110
+
+
+def _is_living(record: list, birth_date: Optional[date], death_date: Optional[date]) -> bool:
+    """Decide whether a person should be treated as living (and so kept private)."""
+    if death_date is not None:
+        return False
+    # "1 DEAT Y" (or a DEAT/BURI block with no date) means deceased, date unknown.
+    if any(level == 1 and tag in ("DEAT", "BURI") for level, tag, _ in record):
+        return False
+    if birth_date is not None:
+        cutoff_year = date.today().year - PRESUMED_DECEASED_AFTER_YEARS
+        if birth_date.year < cutoff_year:
+            return False
+    return True
+
+
 # ── Public import function ──────────────────────────────────────────────────
 
 def import_gedcom(db: Session, content: bytes) -> dict:
@@ -144,7 +165,7 @@ def import_gedcom(db: Session, content: bytes) -> dict:
 
         # Gather fields
         given = sur = ""
-        maiden = middle = None
+        maiden = None
         gender = Gender.unknown
 
         birth_date, birth_place = _get_event_values(record, "BIRT")
@@ -172,7 +193,7 @@ def import_gedcom(db: Session, content: bytes) -> dict:
         first_name = given_parts[0] if given_parts else None
         middle_name = " ".join(given_parts[1:]) if len(given_parts) > 1 else None
 
-        is_living = death_date is None
+        is_living = _is_living(record, birth_date, death_date)
 
         person = Person(
             external_id=external_id,
@@ -195,7 +216,7 @@ def import_gedcom(db: Session, content: bytes) -> dict:
     db.commit()
 
     # ── Pass 2: families ─────────────────────────────────────────────────
-    for xref, record in records.items():
+    for record in records.values():
         if not record or record[0][1] != "FAM":
             continue
 
